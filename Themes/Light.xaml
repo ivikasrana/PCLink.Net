@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="BgBrush" Color="#F2F2F7"/>
+    <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="LabelBrush" Color="#1C1C1E"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="#6B6B72"/>
+    <SolidColorBrush x:Key="FillBrush" Color="#1F787880"/>
+    <SolidColorBrush x:Key="FillStrongBrush" Color="#33787880"/>
+    <SolidColorBrush x:Key="SeparatorBrush" Color="#2E3C3C43"/>
+    <SolidColorBrush x:Key="TintBrush" Color="#007AFF"/>
+    <SolidColorBrush x:Key="SegmentBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="OnTintBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="GoodBrush" Color="#248A3D"/>
+    <SolidColorBrush x:Key="BadBrush" Color="#FF3B30"/>
+</ResourceDictionary>

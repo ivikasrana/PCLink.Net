@@ -1,0 +1,266 @@
+<Window x:Class="PCLink.Net.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PCLink.Net"
+        Title="PCLink" Width="720" Height="820" MinWidth="660" MinHeight="640"
+        Background="{DynamicResource BgBrush}" Foreground="{DynamicResource LabelBrush}"
+        FontFamily="{StaticResource UiFont}" FontSize="14" UseLayoutRounding="True"
+        WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="CanResizeWithGrip"
+        BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="1"
+        PreviewMouseLeftButtonDown="Window_PreviewMouseLeftButtonDown">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="6" GlassFrameThickness="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+    <Window.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="Minimize" Click="Minimize_Click"/>
+            <MenuItem Header="Close" Click="Close_Click"/>
+        </ContextMenu>
+    </Window.ContextMenu>
+    <Grid>
+        <local:StarField x:Name="Sky"/>
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Margin="0,0,0,18">
+                <StackPanel>
+                    <TextBlock Text="PCLink" FontSize="26" FontWeight="Bold"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="{DynamicResource BadBrush}" Margin="0,1,8,0" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StatusText" Text="Starting" Style="{StaticResource Caption}" FontWeight="Normal" FontSize="13"/>
+                    </StackPanel>
+                </StackPanel>
+                <Button x:Name="BtnTheme" Style="{StaticResource IconButton}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Click="BtnTheme_Click" ToolTip="Toggle light / dark"/>
+            </Grid>
+
+            <TabControl x:Name="Tabs" Grid.Row="1">
+                <TabItem Header="Phone">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,16,0,0">
+                            <Border Style="{StaticResource StackCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Pair a phone" Style="{StaticResource Heading}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                        <Button x:Name="PairButton" Content="Show pairing code" Click="Pair_Click" Margin="0,0,10,0"/>
+                                        <Button x:Name="FindButton" Content="Find phone" Style="{StaticResource GhostButton}" Click="Find_Click"/>
+                                    </StackPanel>
+                                    <Border Background="White" CornerRadius="12" Padding="8" HorizontalAlignment="Left" Margin="0,0,0,10"
+                                            Visibility="{Binding Visibility, ElementName=QrImage}">
+                                        <Image x:Name="QrImage" Width="240" Height="240" Visibility="Collapsed" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                                    </Border>
+                                    <TextBlock x:Name="PairText" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource StackCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Connection" Style="{StaticResource Heading}"/>
+                                    <TextBlock Text="PHONE IP ADDRESS" Style="{StaticResource Caption}" Margin="0,0,0,6"/>
+                                    <TextBox x:Name="HostBox" Margin="0,0,0,14"/>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="WEBDAV PORT" Style="{StaticResource Caption}" Margin="0,0,0,6"/>
+                                            <TextBox x:Name="DavPortBox"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="HTTP PORT" Style="{StaticResource Caption}" Margin="0,0,0,6"/>
+                                            <TextBox x:Name="HttpPortBox"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="4">
+                                            <TextBlock Text="FTP PORT" Style="{StaticResource Caption}" Margin="0,0,0,6"/>
+                                            <TextBox x:Name="FtpPortBox"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="USERNAME" Style="{StaticResource Caption}" Margin="0,0,0,6"/>
+                                            <TextBox x:Name="UserBox"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="PASSWORD" Style="{StaticResource Caption}" Margin="0,0,0,6"/>
+                                            <PasswordBox x:Name="PasswordBox"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Button Content="Save" Click="Save_Click" HorizontalAlignment="Left"/>
+                                    <TextBlock x:Name="ConnectionStatus" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource StackCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Drive and shortcuts" Style="{StaticResource Heading}"/>
+                                    <TextBlock Text="DRIVE LETTER" Style="{StaticResource Caption}" Margin="0,0,0,6"/>
+                                    <ComboBox x:Name="DriveBox" Margin="0,0,0,14"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                        <Button Content="Map WebDAV drive" Click="Map_Click" Margin="0,0,10,0"/>
+                                        <Button Content="Disconnect" Style="{StaticResource GhostButton}" Click="Unmap_Click"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                        <Button Content="Open FTP" Style="{StaticResource GhostButton}" Click="Ftp_Click" Margin="0,0,10,0"/>
+                                        <Button Content="Open web page" Style="{StaticResource GhostButton}" Click="Web_Click"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="ReconnectCheck" Content="Reconnect the drive automatically" Margin="0,0,0,10" Click="Options_Click"/>
+                                    <CheckBox x:Name="StartupCheck" Content="Start with Windows, in the tray" Click="Options_Click"/>
+                                    <TextBlock x:Name="DriveStatus" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Transfer">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,16,0,0">
+                            <Border Style="{StaticResource StackCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Send files" Style="{StaticResource Heading}"/>
+                                    <TextBlock Text="PHONE FOLDER" Style="{StaticResource Caption}" Margin="0,0,0,6"/>
+                                    <TextBox x:Name="UploadFolderBox" Margin="0,0,0,14" LostFocus="Options_Click"/>
+                                    <Border x:Name="SendDrop" Style="{StaticResource DropZone}" Drop="SendDrop_Drop">
+                                        <TextBlock Text="Drop files or folders here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryBrush}"/>
+                                    </Border>
+                                    <Border x:Name="ApkDrop" Style="{StaticResource DropZone}" Drop="ApkDrop_Drop">
+                                        <TextBlock Text="Drop APK files here to install" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource SecondaryBrush}"/>
+                                    </Border>
+                                    <ListView x:Name="TransferList" MaxHeight="260" BorderThickness="0" Background="Transparent" Foreground="{DynamicResource LabelBrush}">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,4">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="150"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                    <ProgressBar Grid.Column="1" Value="{Binding Progress}" Maximum="100" Margin="8,0"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Status}" Foreground="{DynamicResource SecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                    <Button Content="Cancel all" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Click="CancelTransfers_Click"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Sync">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,16,0,0">
+                            <Border Style="{StaticResource StackCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Folder sync" Style="{StaticResource Heading}"/>
+                                    <TextBlock Text="PC FOLDER" Style="{StaticResource Caption}" Margin="0,0,0,6"/>
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="SyncLocalBox" LostFocus="Options_Click"/>
+                                        <Button Grid.Column="1" Content="Browse" Style="{StaticResource GhostButton}" Margin="10,0,0,0" Click="Browse_Click"/>
+                                    </Grid>
+                                    <TextBlock Text="PHONE FOLDER" Style="{StaticResource Caption}" Margin="0,0,0,6"/>
+                                    <TextBox x:Name="SyncRemoteBox" Margin="0,0,0,16" LostFocus="Options_Click"/>
+                                    <Button x:Name="SyncButton" Content="Sync now" Click="Sync_Click" HorizontalAlignment="Left"/>
+                                    <TextBox x:Name="SyncLog" Style="{StaticResource MultilineBox}" IsReadOnly="True" Height="220" Margin="0,14,0,0"
+                                             VerticalScrollBarVisibility="Auto" AcceptsReturn="True"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Share">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,16,0,0">
+                            <Border Style="{StaticResource StackCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Text to phone" Style="{StaticResource Heading}"/>
+                                    <TextBox x:Name="TextToSend" Style="{StaticResource MultilineBox}" Height="96" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="Send" Click="SendText_Click" Margin="0,0,10,0"/>
+                                        <Button Content="Send clipboard" Style="{StaticResource GhostButton}" Click="SendClipboard_Click"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="ShareStatus" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StackCard}">
+                                <StackPanel>
+                                    <TextBlock Text="From phone" Style="{StaticResource Heading}"/>
+                                    <CheckBox x:Name="MirrorCheck" Content="Show phone notifications on this PC" Margin="0,0,0,12" Click="Options_Click"/>
+                                    <ListBox x:Name="ReceivedList" MaxHeight="200" BorderThickness="0" Background="Transparent" Foreground="{DynamicResource LabelBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Windows">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,16,0,0">
+                            <Border Style="{StaticResource StackCard}">
+                                <StackPanel>
+                                    <TextBlock Text="This PC" Style="{StaticResource Heading}"/>
+                                    <TextBlock Text="WINDOWS" Style="{StaticResource Caption}" Margin="0,0,0,2"/>
+                                    <TextBlock x:Name="WindowsText" FontSize="15" Margin="0,0,0,12" TextWrapping="Wrap"/>
+                                    <TextBlock Text="WEBCLIENT SERVICE" Style="{StaticResource Caption}" Margin="0,0,0,2"/>
+                                    <TextBlock x:Name="ServiceText" FontSize="15" Margin="0,0,0,12"/>
+                                    <TextBlock Text="BASIC LOGIN OVER HTTP" Style="{StaticResource Caption}" Margin="0,0,0,2"/>
+                                    <TextBlock x:Name="BasicText" FontSize="15" Margin="0,0,0,12"/>
+                                    <TextBlock Text="WEBDAV FILE SIZE LIMIT" Style="{StaticResource Caption}" Margin="0,0,0,2"/>
+                                    <TextBlock x:Name="SizeText" FontSize="15" Margin="0,0,0,16"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="ApplyButton" Content="Apply fixes" Click="Apply_Click" Margin="0,0,10,0"/>
+                                        <Button Content="Restore defaults" Style="{StaticResource GhostButton}" Click="Restore_Click" Margin="0,0,10,0"/>
+                                        <Button Content="Refresh" Style="{StaticResource GhostButton}" Click="Refresh_Click"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="TweakStatus" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Diagnostics">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,16,0,0">
+                            <Border Style="{StaticResource StackCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Connection check" Style="{StaticResource Heading}"/>
+                                    <Button x:Name="DiagButton" Content="Run checks" Click="Diagnose_Click" HorizontalAlignment="Left" Margin="0,0,0,14"/>
+                                    <ItemsControl x:Name="DiagList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Margin="0,3">
+                                                    <TextBlock Text="{Binding Mark}" Foreground="{Binding Brush}" FontWeight="Bold" Width="22"/>
+                                                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</Window>
