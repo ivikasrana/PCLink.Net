@@ -37,10 +37,37 @@ public partial class App : Application
             Shutdown(0);
             return;
         }
+        instanceMutex = new Mutex(true, InstanceName, out var first);
+        if (!first)
+        {
+            if (!e.Args.Contains("--tray"))
+            {
+                try { EventWaitHandle.OpenExisting(ShowEventName).Set(); } catch { }
+            }
+            Shutdown(0);
+            return;
+        }
         try { IsDark = !File.Exists(ThemeFile) || File.ReadAllText(ThemeFile).Trim() != "light"; } catch { }
         ApplyTheme(IsDark);
         var window = new MainWindow();
+        ListenForShowRequests(window);
         if (!e.Args.Contains("--tray")) window.Show();
+    }
+
+    private const string InstanceName = @"Local\PCLink.Net.Instance";
+    private const string ShowEventName = @"Local\PCLink.Net.Show";
+    private static Mutex? instanceMutex;
+
+    private static void ListenForShowRequests(MainWindow window)
+    {
+        var showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowEventName);
+        var thread = new Thread(() =>
+        {
+            while (showEvent.WaitOne())
+                window.Dispatcher.BeginInvoke(window.ShowWindow);
+        })
+        { IsBackground = true };
+        thread.Start();
     }
 
     public static void ApplyTheme(bool dark, bool persist = true)

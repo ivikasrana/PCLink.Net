@@ -108,11 +108,11 @@ public partial class MainWindow : Window
         if (e.ButtonState == MouseButtonState.Pressed) DragMove();
     }
 
-    private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+    private void Minimize_Click(object sender, RoutedEventArgs e) => Hide();
 
-    private void Close_Click(object sender, RoutedEventArgs e) => Close();
+    private void Close_Click(object sender, RoutedEventArgs e) => ExitApp();
 
-    private void ShowWindow()
+    public void ShowWindow()
     {
         Show();
         WindowState = WindowState.Normal;
@@ -131,11 +131,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        if (!exiting)
-        {
-            e.Cancel = true;
-            Hide();
-        }
+        if (!exiting) ExitApp();
         base.OnClosing(e);
     }
 
