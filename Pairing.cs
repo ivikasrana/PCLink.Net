@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ZXing;
@@ -8,12 +7,6 @@ namespace PCLink.Net;
 
 public static class Pairing
 {
-    public static string NewPassword()
-    {
-        const string chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        return string.Concat(Enumerable.Range(0, 10).Select(_ => chars[RandomNumberGenerator.GetInt32(chars.Length)]));
-    }
-
     public static string SetupLink(string user, string password, int dav, int http, int ftp) =>
         $"pclink://setup?user={Uri.EscapeDataString(user)}&pass={Uri.EscapeDataString(password)}&dav={dav}&http={http}&ftp={ftp}";
 

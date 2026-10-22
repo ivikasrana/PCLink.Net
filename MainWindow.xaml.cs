@@ -293,7 +293,12 @@ public partial class MainWindow : Window
         }
         if (!TryReadPorts(PairText, out var dav, out var http, out var ftp)) return;
         var user = OrDefault(UserBox.Text, DefaultUser);
-        var password = Pairing.NewPassword();
+        var password = PasswordBox.Password.Length > 0 ? PasswordBox.Password : AppState.Password;
+        if (password.Length < 4)
+        {
+            Say(PairText, "Enter a password of at least 4 characters in the Password box first. The phone will use it.", false);
+            return;
+        }
         const string prompt = "On the phone open PCLink and tap Scan code from PC.";
         QrImage.Source = Pairing.RenderQr(Pairing.SetupLink(user, password, dav, http, ftp));
         QrImage.Visibility = Visibility.Visible;
@@ -322,6 +327,7 @@ public partial class MainWindow : Window
         settings.TrySave();
         AppState.Password = password;
         CredentialStore.Save(password);
+        PasswordBox.Clear();
         ShowConnection();
         UserBox.Text = user;
         Say(PairText, $"Paired with {phone.Name} at {phone.Host}.", true);
