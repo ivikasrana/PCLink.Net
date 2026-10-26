@@ -102,7 +102,7 @@ public sealed class PhoneMonitor
         if (!s.ReconnectDrive || drive.Length == 0 || port <= 0 || !WebClientTweaks.Read().BasicOk) return;
         var cameBack = !online;
         online = true;
-        if (!DriveMapper.IsConnected(drive)) await Task.Run(() => DriveMapper.Map(drive, host, port, user, password));
+        if (!DriveMapper.IsMappedTo(drive, host, port)) await Task.Run(() => DriveMapper.Map(drive, host, port, user, password));
         else if (cameBack) DriveMapper.RefreshExplorer(drive);
     }
 }

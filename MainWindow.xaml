@@ -225,7 +225,9 @@
                                     <TextBlock Text="BASIC LOGIN OVER HTTP" Style="{StaticResource Caption}" Margin="0,0,0,2"/>
                                     <TextBlock x:Name="BasicText" FontSize="15" Margin="0,0,0,12"/>
                                     <TextBlock Text="WEBDAV FILE SIZE LIMIT" Style="{StaticResource Caption}" Margin="0,0,0,2"/>
-                                    <TextBlock x:Name="SizeText" FontSize="15" Margin="0,0,0,16"/>
+                                    <TextBlock x:Name="SizeText" FontSize="15" Margin="0,0,0,12"/>
+                                    <TextBlock Text="RETRY AFTER PHONE WAS OFFLINE" Style="{StaticResource Caption}" Margin="0,0,0,2"/>
+                                    <TextBlock x:Name="RetryText" FontSize="15" Margin="0,0,0,16"/>
                                     <StackPanel Orientation="Horizontal">
                                         <Button x:Name="ApplyButton" Content="Apply fixes" Click="Apply_Click" Margin="0,0,10,0"/>
                                         <Button Content="Restore defaults" Style="{StaticResource GhostButton}" Click="Restore_Click" Margin="0,0,10,0"/>

@@ -1,6 +1,5 @@
 using System.IO;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 
@@ -62,13 +61,6 @@ public static class Diagnostics
         }
     }
 
-    private static HttpClient NewHttp(Settings s, int port)
-    {
-        var http = new HttpClient(new SocketsHttpHandler { UseProxy = false }) { BaseAddress = new Uri($"http://{s.Host}:{port}/"), Timeout = TimeSpan.FromSeconds(4) };
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{s.User}:{AppState.Password}")));
-        return http;
-    }
-
     private static async Task<(bool, string)> Api()
     {
         try
@@ -93,7 +85,7 @@ public static class Diagnostics
     {
         try
         {
-            using var http = NewHttp(s, s.DavPort);
+            using var http = PhoneClient.CreateHttp(s.Host, s.DavPort, s.User, AppState.Password, TimeSpan.FromSeconds(4));
             using var request = new HttpRequestMessage(HttpMethod.Options, "/");
             using var response = await http.SendAsync(request);
             if ((int)response.StatusCode == 401) return (false, "WebDAV rejected the username or password");

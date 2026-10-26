@@ -38,11 +38,14 @@ public static class DriveMapper
     private const int ShcneUpdateItem = 0x2000;
     private const int ShcnfPath = 0x0005;
 
-    public static bool IsConnected(string drive)
+    private static string Unc(string host, int port) => $@"\\{host}@{port}\DavWWWRoot";
+
+    public static bool IsMappedTo(string drive, string host, int port)
     {
         var length = 512;
         var remote = new System.Text.StringBuilder(length);
-        return WNetGetConnection(drive, remote, ref length) == 0;
+        return WNetGetConnection(drive, remote, ref length) == 0
+               && string.Equals(remote.ToString(), Unc(host, port), StringComparison.OrdinalIgnoreCase);
     }
 
     public static void RefreshExplorer(string drive) => SHChangeNotify(ShcneUpdateItem, ShcnfPath, drive + "\\", IntPtr.Zero);
@@ -61,7 +64,7 @@ public static class DriveMapper
         {
             Type = TypeDisk,
             LocalName = drive,
-            RemoteName = $@"\\{host}@{port}\DavWWWRoot",
+            RemoteName = Unc(host, port),
         };
         var code = WNetAddConnection2(ref resource, password, user, UpdateProfile | SaveCredentials);
         if (code == 0) RefreshExplorer(drive);

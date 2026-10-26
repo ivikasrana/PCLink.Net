@@ -22,6 +22,8 @@ public class TransferItem : INotifyPropertyChanged
         set { status = value; Changed(nameof(Status)); }
     }
 
+    public bool Finished => status is not ("Waiting" or "Sending");
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void Changed(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

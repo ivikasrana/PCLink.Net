@@ -23,12 +23,14 @@ public sealed class PhoneClient : IDisposable
     public PhoneClient(string host, int port, string user, string password)
     {
         this.host = host;
-        http = new HttpClient(new SocketsHttpHandler { UseProxy = false })
-        {
-            BaseAddress = new Uri($"http://{host}:{port}/"),
-            Timeout = TimeSpan.FromMinutes(10),
-        };
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{user}:{password}")));
+        http = CreateHttp(host, port, user, password, TimeSpan.FromMinutes(10));
+    }
+
+    public static HttpClient CreateHttp(string host, int port, string user, string password, TimeSpan timeout)
+    {
+        var client = new HttpClient(new SocketsHttpHandler { UseProxy = false }) { BaseAddress = new Uri($"http://{host}:{port}/"), Timeout = timeout };
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{user}:{password}")));
+        return client;
     }
 
     public void Dispose() => http.Dispose();
@@ -74,7 +76,7 @@ public sealed class PhoneClient : IDisposable
         const int MaxResyncs = 5;
         var length = new FileInfo(local).Length;
         var offset = 0L;
-        var status = await GetJsonAsync($"api/chunk?path={Esc(remote)}", ct);
+        var status = await GetJsonAsync($"api/chunk?path={Esc(remote)}&total={length}&mtime={mtimeMs}", ct);
         var part = status.GetProperty("part").GetInt64();
         if (part > 0 && part < length) offset = part;
         await using var stream = File.OpenRead(local);
