@@ -2,11 +2,12 @@ using Microsoft.Win32;
 
 namespace PCLink.Net;
 
-public record TweakState(int? BasicAuthLevel, uint? FileSizeLimit)
+public record TweakState(int? BasicAuthLevel, uint? FileSizeLimit, int? ServerNotFoundCache)
 {
     public bool BasicOk => BasicAuthLevel == 2;
     public bool SizeOk => FileSizeLimit == uint.MaxValue;
-    public bool AllOk => BasicOk && SizeOk;
+    public bool RetryOk => ServerNotFoundCache == 0;
+    public bool AllOk => BasicOk && SizeOk && RetryOk;
 }
 
 public static class WebClientTweaks
@@ -19,7 +20,8 @@ public static class WebClientTweaks
         using var key = Registry.LocalMachine.OpenSubKey(KeyPath);
         var basic = key?.GetValue("BasicAuthLevel") is int b ? b : (int?)null;
         var size = key?.GetValue("FileSizeLimitInBytes") is int s ? unchecked((uint)s) : (uint?)null;
-        return new TweakState(basic, size);
+        var cache = key?.GetValue("ServerNotFoundCacheLifeTimeInSec") is int c ? c : (int?)null;
+        return new TweakState(basic, size, cache);
     }
 
     public static bool TryApply(out string error)
@@ -29,6 +31,7 @@ public static class WebClientTweaks
             using var key = Registry.LocalMachine.CreateSubKey(KeyPath, true);
             key.SetValue("BasicAuthLevel", 2, RegistryValueKind.DWord);
             key.SetValue("FileSizeLimitInBytes", unchecked((int)uint.MaxValue), RegistryValueKind.DWord);
+            key.SetValue("ServerNotFoundCacheLifeTimeInSec", 0, RegistryValueKind.DWord);
             return Restart(out error);
         }
         catch (Exception e)
@@ -45,6 +48,7 @@ public static class WebClientTweaks
             using var key = Registry.LocalMachine.CreateSubKey(KeyPath, true);
             key.DeleteValue("BasicAuthLevel", false);
             key.DeleteValue("FileSizeLimitInBytes", false);
+            key.DeleteValue("ServerNotFoundCacheLifeTimeInSec", false);
             return Restart(out error);
         }
         catch (Exception e)

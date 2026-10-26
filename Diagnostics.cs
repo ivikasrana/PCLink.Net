@@ -16,6 +16,7 @@ public static class Diagnostics
         var tweaks = WebClientTweaks.Read();
         results.Add((tweaks.BasicOk, "Windows allows Basic login over http"));
         results.Add((tweaks.SizeOk, "Windows WebDAV file size limit raised"));
+        results.Add((tweaks.RetryOk, "Windows retries the phone right away after it was offline"));
         var service = WindowsInfo.ServiceState("WebClient");
         results.Add((service == "Running", $"WebClient service: {service}"));
 

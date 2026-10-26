@@ -69,7 +69,7 @@ public sealed class PhoneClient : IDisposable
 
     public async Task UploadAsync(string local, string remote, long mtimeMs, IProgress<double>? progress, CancellationToken ct)
     {
-        const int Chunk = 4 * 1024 * 1024;
+        const int Chunk = 16 * 1024 * 1024;
         const int Attempts = 3;
         const int MaxResyncs = 5;
         var length = new FileInfo(local).Length;

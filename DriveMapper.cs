@@ -29,6 +29,24 @@ public static class DriveMapper
     [DllImport("mpr.dll", CharSet = CharSet.Unicode)]
     private static extern int WNetCancelConnection2(string name, int flags, bool force);
 
+    [DllImport("mpr.dll", CharSet = CharSet.Unicode)]
+    private static extern int WNetGetConnection(string localName, System.Text.StringBuilder? remoteName, ref int length);
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    private static extern void SHChangeNotify(int eventId, int flags, string item1, IntPtr item2);
+
+    private const int ShcneUpdateItem = 0x2000;
+    private const int ShcnfPath = 0x0005;
+
+    public static bool IsConnected(string drive)
+    {
+        var length = 512;
+        var remote = new System.Text.StringBuilder(length);
+        return WNetGetConnection(drive, remote, ref length) == 0;
+    }
+
+    public static void RefreshExplorer(string drive) => SHChangeNotify(ShcneUpdateItem, ShcnfPath, drive + "\\", IntPtr.Zero);
+
     public static IEnumerable<string> FreeLetters()
     {
         var used = DriveInfo.GetDrives().Select(d => char.ToUpperInvariant(d.Name[0])).ToHashSet();
@@ -46,6 +64,7 @@ public static class DriveMapper
             RemoteName = $@"\\{host}@{port}\DavWWWRoot",
         };
         var code = WNetAddConnection2(ref resource, password, user, UpdateProfile | SaveCredentials);
+        if (code == 0) RefreshExplorer(drive);
         return code == 0 ? null : new Win32Exception(code).Message;
     }
 

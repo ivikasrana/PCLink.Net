@@ -28,13 +28,13 @@ public static class SelfTest
             Check(info.Name.Length > 0 && info.Id.Length > 0, $"info: {info.Name} {info.Id}");
 
             var big = Path.Combine(temp, "up.bin");
-            var data = new byte[10_000_000];
+            var data = new byte[40_000_000];
             Random.Shared.NextBytes(data);
             await File.WriteAllBytesAsync(big, data, ct);
             var steps = 0;
             await client.UploadAsync(big, "/Download/pcltest/up.bin", 1700000000000, new Progress<double>(_ => steps++), ct);
             var listed = await client.ManifestAsync("/Download/pcltest", ct);
-            Check(listed.Any(i => i.Path == "up.bin" && i.Size == data.Length && i.Mtime == 1700000000000), $"chunked upload (10 MB in {steps} chunks, size and mtime kept)");
+            Check(listed.Any(i => i.Path == "up.bin" && i.Size == data.Length && i.Mtime == 1700000000000), $"chunked upload (40 MB in {steps} chunks, size and mtime kept)");
 
             var back = Path.Combine(temp, "down.bin");
             await client.DownloadAsync("/Download/pcltest/up.bin", back, 1700000000000, ct);

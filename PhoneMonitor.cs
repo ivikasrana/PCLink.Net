@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace PCLink.Net;
 
 public sealed class PhoneMonitor
@@ -7,9 +5,8 @@ public sealed class PhoneMonitor
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan DiscoveryInterval = TimeSpan.FromSeconds(20);
-    private static readonly TimeSpan DriveProbeTimeout = TimeSpan.FromSeconds(4);
-
     private readonly CancellationTokenSource stop = new();
+    private bool online;
     private DateTime lastDiscovery = DateTime.MinValue;
     private long lastNote = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
@@ -63,6 +60,7 @@ public sealed class PhoneMonitor
         if (client is null || info is null)
         {
             Status?.Invoke(false, "Phone offline");
+            online = false;
             await Rediscover(s.PhoneId, s.Host);
             return;
         }
@@ -102,8 +100,9 @@ public sealed class PhoneMonitor
         var user = s.User;
         var password = AppState.Password;
         if (!s.ReconnectDrive || drive.Length == 0 || port <= 0 || !WebClientTweaks.Read().BasicOk) return;
-        var probe = Task.Run(() => Directory.Exists(drive + "\\"));
-        var mounted = await Task.WhenAny(probe, Task.Delay(DriveProbeTimeout, stop.Token)) == probe && probe.Result;
-        if (!mounted) await Task.Run(() => DriveMapper.Map(drive, host, port, user, password));
+        var cameBack = !online;
+        online = true;
+        if (!DriveMapper.IsConnected(drive)) await Task.Run(() => DriveMapper.Map(drive, host, port, user, password));
+        else if (cameBack) DriveMapper.RefreshExplorer(drive);
     }
 }
