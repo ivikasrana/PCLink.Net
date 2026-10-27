@@ -47,6 +47,7 @@ public partial class App : Application
             Shutdown(0);
             return;
         }
+        if (AppState.Settings.StartWithWindows) _ = Task.Run(() => AutoStart.Set(true));
         try { IsDark = !File.Exists(ThemeFile) || File.ReadAllText(ThemeFile).Trim() != "light"; } catch { }
         ApplyTheme(IsDark);
         var window = new MainWindow();
