@@ -25,11 +25,10 @@ public static class Diagnostics
             return results;
         }
 
-        foreach (var (name, port) in new[] { ("WebDAV", s.DavPort), ("HTTP", s.HttpPort), ("FTP", s.FtpPort) })
-        {
-            if (port <= 0) continue;
-            results.Add((await CanConnect(s.Host, port), $"{name} port {port} reachable"));
-        }
+        var ports = new[] { ("WebDAV", s.DavPort), ("HTTP", s.HttpPort), ("FTP", s.FtpPort) }
+            .Where(p => p.Item2 > 0)
+            .Select(async p => (await CanConnect(s.Host, p.Item2), $"{p.Item1} port {p.Item2} reachable"));
+        results.AddRange(await Task.WhenAll(ports.ToList()));
 
         if (AppState.Password.Length == 0)
         {
@@ -37,9 +36,11 @@ public static class Diagnostics
             return results;
         }
 
-        if (s.HttpPort > 0) results.Add(await Api());
-        if (s.DavPort > 0) results.Add(await WebDav(s));
-        if (s.FtpPort > 0) results.Add(await Ftp(s));
+        var logins = new List<Task<(bool, string)>>();
+        if (s.HttpPort > 0) logins.Add(Api());
+        if (s.DavPort > 0) logins.Add(WebDav(s));
+        if (s.FtpPort > 0) logins.Add(Ftp(s));
+        results.AddRange(await Task.WhenAll(logins));
 
         var found = await Discovery.FindAsync();
         results.Add((found.Any(p => s.PhoneId.Length == 0 || p.Id == s.PhoneId), $"Phone answers discovery ({found.Count} found)"));

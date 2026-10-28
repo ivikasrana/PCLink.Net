@@ -7,6 +7,9 @@ public sealed class PhoneMonitor
     private static readonly TimeSpan DiscoveryInterval = TimeSpan.FromSeconds(20);
     private readonly CancellationTokenSource stop = new();
     private bool online;
+    private bool reachable;
+    private PhoneClient? cached;
+    private (string Host, int Http, int Dav, string User, string Password) cachedKey;
     private DateTime lastDiscovery = DateTime.MinValue;
     private long lastNote = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
@@ -21,12 +24,51 @@ public sealed class PhoneMonitor
 
     private async Task Loop()
     {
-        while (!stop.IsCancellationRequested)
+        try
         {
-            try { await Tick(); }
-            catch (Exception) when (!stop.IsCancellationRequested) { }
-            try { await Task.Delay(Interval, stop.Token); }
-            catch (OperationCanceledException) { return; }
+            while (!stop.IsCancellationRequested)
+            {
+                try { await Tick(); }
+                catch (Exception) when (!stop.IsCancellationRequested) { }
+                try { await Task.Delay(Interval, stop.Token); }
+                catch (OperationCanceledException) { return; }
+            }
+        }
+        finally
+        {
+            DropClient();
+        }
+    }
+
+    private PhoneClient? GetClient()
+    {
+        var s = AppState.Settings;
+        var key = (s.Host, s.HttpPort, s.DavPort, s.User, AppState.Password);
+        if (cached is null || key != cachedKey)
+        {
+            cached?.Dispose();
+            cached = AppState.NewClient();
+            cachedKey = key;
+        }
+        return cached;
+    }
+
+    private void DropClient()
+    {
+        cached?.Dispose();
+        cached = null;
+    }
+
+    private async Task<PhoneInfo?> Probe(PhoneClient client)
+    {
+        try
+        {
+            using var timeout = Timeout();
+            return await client.InfoAsync(timeout.Token);
+        }
+        catch (Exception) when (!stop.IsCancellationRequested)
+        {
+            return null;
         }
     }
 
@@ -45,17 +87,16 @@ public sealed class PhoneMonitor
             Status?.Invoke(false, "No phone set up");
             return;
         }
-        using var client = AppState.NewClient();
-        PhoneInfo? info = null;
-        if (client is not null)
+        var client = GetClient();
+        var info = client is null ? null : await Probe(client);
+        if (client is not null && info is null && reachable)
         {
-            try
-            {
-                using var timeout = Timeout();
-                info = await client.InfoAsync(timeout.Token);
-            }
-            catch (Exception) when (!stop.IsCancellationRequested) { }
+            // A kept-alive connection can go stale when the phone drops off Wi-Fi; retry once on a fresh one.
+            DropClient();
+            client = GetClient();
+            info = client is null ? null : await Probe(client);
         }
+        reachable = info is not null;
 
         if (client is null || info is null)
         {

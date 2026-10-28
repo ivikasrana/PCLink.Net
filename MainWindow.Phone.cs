@@ -175,6 +175,11 @@ public partial class MainWindow
     private void Ftp_Click(object sender, RoutedEventArgs e)
     {
         if (!ReadConnection()) return;
+        if (settings.Host.Length == 0)
+        {
+            Say(ConnectionStatus, "Enter the phone IP address first.", false);
+            return;
+        }
         var user = Uri.EscapeDataString(settings.User);
         Process.Start(new ProcessStartInfo("explorer.exe", $"ftp://{user}@{settings.Host}:{settings.FtpPort}/") { UseShellExecute = true });
     }
@@ -182,6 +187,11 @@ public partial class MainWindow
     private void Web_Click(object sender, RoutedEventArgs e)
     {
         if (!ReadConnection()) return;
+        if (settings.Host.Length == 0)
+        {
+            Say(ConnectionStatus, "Enter the phone IP address first.", false);
+            return;
+        }
         Process.Start(new ProcessStartInfo($"http://{settings.Host}:{settings.HttpPort}/") { UseShellExecute = true });
     }
 }

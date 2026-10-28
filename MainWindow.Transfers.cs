@@ -51,6 +51,7 @@ public partial class MainWindow
         ReadOptions();
         if (transferCts.IsCancellationRequested) transferCts = new CancellationTokenSource();
         var ct = transferCts.Token;
+        var client = AppState.NewClient();
         foreach (var (local, relative) in Expand(paths))
         {
             if (apk && !local.EndsWith(".apk", StringComparison.OrdinalIgnoreCase)) continue;
@@ -59,10 +60,15 @@ public partial class MainWindow
             var remote = settings.UploadFolder.TrimEnd('/') + "/" + relative;
             Enqueue(async () =>
             {
-                await RunTransfer(item, local, remote, apk, ct);
+                await RunTransfer(item, client, local, remote, apk, ct);
                 TrimTransfers();
             });
         }
+        Enqueue(() =>
+        {
+            client?.Dispose();
+            return Task.CompletedTask;
+        });
     }
 
     private void TrimTransfers()
@@ -73,14 +79,13 @@ public partial class MainWindow
         }
     }
 
-    private static async Task RunTransfer(TransferItem item, string local, string remote, bool apk, CancellationToken ct)
+    private static async Task RunTransfer(TransferItem item, PhoneClient? client, string local, string remote, bool apk, CancellationToken ct)
     {
         if (ct.IsCancellationRequested)
         {
             item.Status = "Cancelled";
             return;
         }
-        using var client = AppState.NewClient();
         if (client is null)
         {
             item.Status = "Set up the phone first";
@@ -91,13 +96,14 @@ public partial class MainWindow
             item.Status = "Sending";
             if (apk)
             {
-                await client.InstallApkAsync(local, ct);
+                await Task.Run(() => client.InstallApkAsync(local, ct), ct);
                 item.Status = "Confirm on phone";
             }
             else
             {
                 var mtime = new DateTimeOffset(File.GetLastWriteTimeUtc(local)).ToUnixTimeMilliseconds();
-                await client.UploadAsync(local, remote, mtime, new Progress<double>(p => item.Progress = p * 100), ct);
+                var progress = new Progress<double>(p => item.Progress = p * 100);
+                await Task.Run(() => client.UploadAsync(local, remote, mtime, progress, ct), ct);
                 item.Status = "Done";
             }
             item.Progress = 100;
@@ -151,7 +157,8 @@ public partial class MainWindow
         var log = new Progress<string>(line => SyncLog.AppendText(line + Environment.NewLine));
         try
         {
-            var summary = await SyncEngine.RunAsync(client, settings.SyncLocal, settings.SyncRemote, log, CancellationToken.None);
+            var (local, remote) = (settings.SyncLocal, settings.SyncRemote);
+            var summary = await Task.Run(() => SyncEngine.RunAsync(client, local, remote, log, CancellationToken.None));
             SyncLog.AppendText(summary + Environment.NewLine);
             tray.Balloon("PCLink", summary);
         }

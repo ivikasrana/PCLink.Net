@@ -44,7 +44,8 @@ public sealed class PhoneClient : IDisposable
     {
         using var response = await http.GetAsync(url, ct);
         response.EnsureSuccessStatusCode();
-        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+        await using var body = await response.Content.ReadAsStreamAsync(ct);
+        using var document = await JsonDocument.ParseAsync(body, cancellationToken: ct);
         return document.RootElement.Clone();
     }
 
@@ -79,7 +80,7 @@ public sealed class PhoneClient : IDisposable
         var status = await GetJsonAsync($"api/chunk?path={Esc(remote)}&total={length}&mtime={mtimeMs}", ct);
         var part = status.GetProperty("part").GetInt64();
         if (part > 0 && part < length) offset = part;
-        await using var stream = File.OpenRead(local);
+        await using var stream = new FileStream(local, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.Asynchronous | FileOptions.SequentialScan);
         var buffer = new byte[(int)Math.Min(Chunk, Math.Max(length, 1))];
         var resyncs = 0;
         do
@@ -130,9 +131,9 @@ public sealed class PhoneClient : IDisposable
         try
         {
             await using (var source = await response.Content.ReadAsStreamAsync(ct))
-            await using (var target = File.Create(temp))
+            await using (var target = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None, 1, FileOptions.Asynchronous | FileOptions.SequentialScan))
             {
-                await source.CopyToAsync(target, ct);
+                await source.CopyToAsync(target, 256 * 1024, ct);
             }
             File.Move(temp, local, true);
         }
