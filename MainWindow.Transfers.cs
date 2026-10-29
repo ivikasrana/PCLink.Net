@@ -198,6 +198,13 @@ public partial class MainWindow
         }
     }
 
+    private void DeleteReceived_Click(object sender, RoutedEventArgs e)
+    {
+        if (System.Windows.Controls.ItemsControl.ContainerFromElement(ReceivedList, (DependencyObject)sender) is not System.Windows.Controls.ListBoxItem row) return;
+        var index = ReceivedList.ItemContainerGenerator.IndexFromContainer(row);
+        if (index >= 0) received.RemoveAt(index);
+    }
+
     private async void SendText_Click(object sender, RoutedEventArgs e) => await SendTextAsync(TextToSend.Text);
 
     private async void SendClipboard_Click(object sender, RoutedEventArgs e) => await SendClipboardAsync();

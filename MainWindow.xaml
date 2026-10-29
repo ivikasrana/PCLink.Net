@@ -205,7 +205,20 @@
                                 <StackPanel>
                                     <TextBlock Text="From phone" Style="{StaticResource Heading}"/>
                                     <CheckBox x:Name="MirrorCheck" Content="Show phone notifications on this PC" Margin="0,0,0,12" Click="Options_Click"/>
-                                    <ListBox x:Name="ReceivedList" MaxHeight="200" BorderThickness="0" Background="Transparent" Foreground="{DynamicResource LabelBrush}"/>
+                                    <ListBox x:Name="ReceivedList" MaxHeight="200" BorderThickness="0" Background="Transparent" Foreground="{DynamicResource LabelBrush}" HorizontalContentAlignment="Stretch">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                                    <Button Grid.Column="1" Content="Delete" Style="{StaticResource GhostButton}" Margin="10,0,0,0" Click="DeleteReceived_Click"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
